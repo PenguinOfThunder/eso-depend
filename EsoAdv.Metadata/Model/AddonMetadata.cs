@@ -104,6 +104,8 @@ namespace EsoAdv.Metadata.Model
         /// <summary>True if all mandatory fields are present</summary>
         public bool IsValid => Title != null && APIVersion != null;
 
+        public bool IsTopLevel { get; set; }
+
         /// <summary>The name of the add-on, derived from the manifest filename</summary>
         public string Name => _name;
 

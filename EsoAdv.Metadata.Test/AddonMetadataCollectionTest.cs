@@ -11,7 +11,7 @@ namespace EsoAdv.Metadata.Test
     [TestClass]
     public class AddonMetadataCollectionTest
     {
-        private string testdataFolder = @"C:\Users\tore2\Documents\Elder Scrolls Online\live\AddOns";
+        private string testdataFolder = @"C:\Users\tore2\Documents\Elder Scrolls Online\live";
 
         [TestMethod]
         public void TestAnalyze()

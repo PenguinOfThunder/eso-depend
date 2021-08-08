@@ -11,22 +11,24 @@ namespace EsoAdv.Metadata.Test
     [TestClass]
     public class FileParserTest
     {
-        private string testdataFolder = @"C:\Users\tore2\Documents\Elder Scrolls Online\live\AddOns";
+        private string testdataFolder;
 
         [TestInitialize]
         public void Setup()
         {
-
+            testdataFolder = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                @"Elder Scrolls Online\live");
         }
 
         [TestMethod]
         public void TestParse()
         {
-            var metadatafile = testdataFolder + @"\AUI\AUI.txt";
+            var metadatafile = Path.Combine(testdataFolder, @"AddOns\AUI\AUI.txt");
             Assert.IsTrue(File.Exists(metadatafile), "Metadata file does not exist");
-            var metadata = FileParser.Parse(testdataFolder, metadatafile);
+            var metadata = FileParser.ParseManifestFile(metadatafile);
             Assert.IsNotNull(metadata, "Must not be null");
-            Assert.IsNotNull(metadata.Path, "Path must not be null");
+            // Assert.IsNotNull(metadata.Path, "Path must not be null");
             Assert.IsNotNull(metadata.Title, "Title", "Must have title");
             Assert.AreEqual(metadata.Author, "|c87ddf2Sensi|r");
             Assert.AreEqual(metadata.Title, @"|c77ee02Advanced UI|r || Version: 3.81");
@@ -81,6 +83,21 @@ namespace EsoAdv.Metadata.Test
             }
             tw.WriteLine("}");
             tw.Flush();
+        }
+
+        [TestMethod]
+        public void TestGenerateReport()
+        {
+            var addonCollection = FileParser.ParseFolder(testdataFolder);
+            var issues = addonCollection.Analyze();
+            var reportFile = "addons_report.txt";
+            using var tw = new StreamWriter(reportFile);
+            tw.WriteLine("# Issues found");
+            foreach (Issue issue in issues)
+            {
+                tw.WriteLine("{0} - {1}: {2}", issue.AddOnRef, issue.Severity, issue.Message);
+            }
+            tw.WriteLine("- End of Report -");
         }
     }
 }

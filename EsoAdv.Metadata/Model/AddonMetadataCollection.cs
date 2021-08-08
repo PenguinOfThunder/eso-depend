@@ -6,6 +6,22 @@ namespace EsoAdv.Metadata.Model
     public class AddonMetadataCollection
     {
         public string BasePath { get; set; }
+        public string CurrentGameVersion
+        {
+            get
+            {
+                return AddOnSettings?.GetValueOrDefault("Version");
+            }
+        }
+        public string ClientLanguage
+        {
+            get
+            {
+                return UserSettings?.GetValueOrDefault("LastValidLanguage") ?? "en";
+            }
+        }
+        public Dictionary<string, string> UserSettings { get; set; }
+        public Dictionary<string, string> AddOnSettings { get; set; }
         private readonly List<AddonMetadata> _addons = new();
         public int Count => _addons.Count;
 
@@ -56,6 +72,28 @@ namespace EsoAdv.Metadata.Model
 
             foreach (var addon in _addons.OrderBy(a => a.Path))
             {
+                // Metadata problems
+                if (addon.AddOnVersion == null)
+                {
+                    // This shouldn't happen, because we are using this to determine if a file is valid,
+                    // but it's here in case that changes
+                    issues.Add(new Issue()
+                    {
+                        AddOnRef = addon.Name,
+                        Severity = IssueSeverity.Info,
+                        Message = $"{addon.Name} is missing the AddOnVersion manifest field"
+                    });
+                }
+                if (!addon.ProvidedFiles.Any())
+                {
+                    issues.Add(new Issue
+                    {
+                        AddOnRef = addon.Name,
+                        Severity = IssueSeverity.Warning,
+                        Message = $"{addon.Name} does not list any files to load"
+                    });
+                }
+
                 // Find missing required dependencies
                 foreach (var reqDep in addon.DependsOn)
                 {
@@ -68,6 +106,20 @@ namespace EsoAdv.Metadata.Model
                             Message = "Missing required dependency: " + reqDep,
                             Severity = IssueSeverity.Error
                         });
+                    }
+                    else
+                    {
+                        var nonTopLevel = matching.Where(ao => !ao.IsTopLevel);
+                        var nonBundled = nonTopLevel.Where(ao => GetParentAddon(ao) != addon);
+                        if (nonBundled.Any())
+                        {
+                            issues.Add(new Issue
+                            {
+                                AddOnRef = addon.Name,
+                                Severity = IssueSeverity.Warning,
+                                Message = $"{addon.Name} depends on modules that are not bundled with it, and not installed as separate AddOns: " + string.Join(", ", nonBundled)
+                            });
+                        }
                     }
                 }
                 // Find missing optional dependencies
@@ -87,14 +139,15 @@ namespace EsoAdv.Metadata.Model
                 // Find referenced files missing
                 foreach (var file in addon.ProvidedFiles)
                 {
-                    var fpath = Path.Combine(this.BasePath, addon.Directory, AddonMetadata.ExpandendFileName(file, "en", "000000"));
-                    if (!File.Exists(fpath))
+                    var filePath = Path.Combine(BasePath, addon.Directory,
+                     AddonMetadata.ExpandendFileName(file, ClientLanguage, CurrentGameVersion));
+                    if (!File.Exists(filePath))
                     {
                         issues.Add(new Issue()
                         {
                             Severity = IssueSeverity.Warning,
                             AddOnRef = addon.Name,
-                            Message = $"Could not find referenced file: {fpath}"
+                            Message = $"Could not find referenced file: {filePath}"
                         });
                     }
                 }
