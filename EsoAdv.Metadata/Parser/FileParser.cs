@@ -70,7 +70,7 @@ namespace EsoAdv.Metadata.Parser
                 }
                 else if (line.StartsWith("#"))
                 {
-                    var content = line.Substring(2);
+                    var content = line[2..];
                     if (!content.Contains("Megaserver"))
                     {
                         var kv = content.Split(" ", 2,

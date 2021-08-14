@@ -66,7 +66,8 @@ namespace EsoAdv.Metadata.Model
         }
 
         /// <summary>Check this add-on collection for issues like missing dependencies</summary>
-        public List<Issue> Analyze()
+        /// <param name="settings">Configurable parameters for the analysis</param>
+        public List<Issue> Analyze(AnalyzerSettings settings)
         {
             var issues = new List<Issue>();
 
@@ -75,100 +76,121 @@ namespace EsoAdv.Metadata.Model
                 // Metadata problems
                 if (addon.AddOnVersion == null)
                 {
-                    // This shouldn't happen, because we are using this to determine if a file is valid,
-                    // but it's here in case that changes
-                    issues.Add(new Issue()
-                    {
-                        AddOnRef = addon.Name,
-                        Severity = IssueSeverity.Info,
-                        Message = $"{addon.Name} is missing the AddOnVersion manifest field"
-                    });
-                }
-                if (!addon.ProvidedFiles.Any())
-                {
-                    issues.Add(new Issue
-                    {
-                        AddOnRef = addon.Name,
-                        Severity = IssueSeverity.Warning,
-                        Message = $"{addon.Name} does not list any files to load"
-                    });
-                }
-
-                // Find missing required dependencies
-                foreach (var reqDep in addon.DependsOn)
-                {
-                    var matching = FindMatchingAddons(reqDep);
-                    if (!matching.Any())
+                    if (settings.CheckAddOnVersion)
                     {
                         issues.Add(new Issue()
                         {
                             AddOnRef = addon.Name,
-                            Message = "Missing required dependency: " + reqDep,
-                            Severity = IssueSeverity.Error
+                            Severity = IssueSeverity.Info,
+                            Message = $"{addon.Name} is missing the AddOnVersion manifest field"
                         });
                     }
-                    else
+                }
+
+                if (settings.CheckDependsOn)
+                {
+                    // Find missing required dependencies
+                    foreach (var reqDep in addon.DependsOn)
                     {
-                        var nonTopLevel = matching.Where(ao => !ao.IsTopLevel);
-                        var nonBundled = nonTopLevel.Where(ao => GetParentAddon(ao) != addon);
-                        if (nonBundled.Any())
+                        var matching = FindMatchingAddons(reqDep);
+                        if (!matching.Any())
                         {
-                            issues.Add(new Issue
+                            issues.Add(new Issue()
                             {
                                 AddOnRef = addon.Name,
-                                Severity = IssueSeverity.Warning,
-                                Message = $"{addon.Name} depends on modules that are not bundled with it, and not installed as separate AddOns: " + string.Join(", ", nonBundled)
+                                Message = "Missing required dependency: " + reqDep,
+                                Severity = IssueSeverity.Error
+                            });
+                        }
+                        else
+                        {
+                            var nonTopLevel = matching.Where(ao => !ao.IsTopLevel);
+                            var nonBundled = nonTopLevel.Where(ao => GetParentAddon(ao) != addon);
+                            if (nonBundled.Any())
+                            {
+                                issues.Add(new Issue
+                                {
+                                    AddOnRef = addon.Name,
+                                    Severity = IssueSeverity.Warning,
+                                    Message = $"{addon.Name} depends on modules that are not bundled with it, and not installed as separate AddOns: " + string.Join(", ", nonBundled)
+                                });
+                            }
+                        }
+                    }
+                }
+                if (settings.CheckOptionalDependsOn)
+                {
+                    // Find missing optional dependencies
+                    foreach (var optDep in addon.OptionalDependsOn)
+                    {
+                        var matching = FindMatchingAddons(optDep);
+                        if (!matching.Any())
+                        {
+                            issues.Add(new Issue()
+                            {
+                                AddOnRef = addon.Name,
+                                Message = "Missing optional dependency: " + optDep,
+                                Severity = IssueSeverity.Info
                             });
                         }
                     }
                 }
-                // Find missing optional dependencies
-                foreach (var optDep in addon.OptionalDependsOn)
+                if (settings.CheckProvidedFiles)
                 {
-                    var matching = FindMatchingAddons(optDep);
-                    if (!matching.Any())
+                    if (!addon.ProvidedFiles.Any())
                     {
-                        issues.Add(new Issue()
+                        issues.Add(new Issue
                         {
                             AddOnRef = addon.Name,
-                            Message = "Missing optional dependency: " + optDep,
-                            Severity = IssueSeverity.Info
+                            Severity = IssueSeverity.Warning,
+                            Message = $"{addon.Name} does not list any files to load"
                         });
                     }
-                }
-                // Find referenced files missing
-                foreach (var file in addon.ProvidedFiles)
-                {
-                    var filePath = Path.Combine(BasePath, addon.Directory,
-                     AddonMetadata.ExpandendFileName(file, ClientLanguage, CurrentGameVersion));
-                    if (!File.Exists(filePath))
+                    // Find referenced files missing
+                    foreach (var file in addon.ProvidedFiles)
                     {
-                        issues.Add(new Issue()
+                        var filePath = Path.Combine(BasePath, addon.Directory,
+                         AddonMetadata.ExpandendFileName(file, ClientLanguage, CurrentGameVersion));
+                        if (!File.Exists(filePath))
                         {
-                            Severity = IssueSeverity.Warning,
-                            AddOnRef = addon.Name,
-                            Message = $"Could not find referenced file: {filePath}"
-                        });
+                            issues.Add(new Issue()
+                            {
+                                Severity = IssueSeverity.Warning,
+                                AddOnRef = addon.Name,
+                                Message = $"Could not find referenced file: {filePath}"
+                            });
+                        }
                     }
                 }
             }
 
-            var addonsByName = _addons
-                .GroupBy(g => g.Name)
-                .ToDictionary(g => g.Key, g => g.ToList());
-
-            var duplicates = addonsByName
-            .Where(g => g.Value.Count > 1)
-            .Select(g => new Issue
+            if (settings.CheckMultipleInstances)
             {
-                AddOnRef = g.Key,
-                Severity = IssueSeverity.Warning,
-                Message = $"Multiple instances of {g.Key} was found in: " + string.Join(", ", g.Value.Select(a => a.Path))
-            });
-            issues.AddRange(duplicates);
+                var addonsByName = _addons
+                    .GroupBy(g => g.Name)
+                    .ToDictionary(g => g.Key, g => g.ToList());
 
+                var duplicates = addonsByName
+                .Where(g => g.Value.Count > 1)
+                .Select(g => new Issue
+                {
+                    AddOnRef = g.Key,
+                    Severity = IssueSeverity.Warning,
+                    Message = $"Multiple instances of {g.Key} was found in: " + string.Join(", ", g.Value.Select(a => a.Path))
+                });
+                issues.AddRange(duplicates);
+            }
             return issues;
         }
+    }
+
+    public class AnalyzerSettings
+    {
+        public bool CheckAddOnVersion = true;
+        public bool CheckProvidedFiles = true;
+        public bool CheckOptionalDependsOn = true;
+        public bool CheckMultipleInstances = true;
+        internal bool CheckDependsOn = true;
     }
 
 }
