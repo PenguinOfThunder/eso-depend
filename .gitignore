@@ -31,3 +31,5 @@ obj/
 TestResults
 
 .fake
+
+publish/
