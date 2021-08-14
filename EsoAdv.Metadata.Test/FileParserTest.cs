@@ -89,7 +89,7 @@ namespace EsoAdv.Metadata.Test
         public void TestGenerateReport()
         {
             var addonCollection = FileParser.ParseFolder(testdataFolder);
-            var issues = addonCollection.Analyze();
+            var issues = addonCollection.Analyze(new AnalyzerSettings());
             var reportFile = "addons_report.txt";
             using var tw = new StreamWriter(reportFile);
             tw.WriteLine("# Issues found");

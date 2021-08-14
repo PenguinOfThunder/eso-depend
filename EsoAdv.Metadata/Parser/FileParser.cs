@@ -17,7 +17,7 @@ namespace EsoAdv.Metadata.Parser
         private static readonly Regex _fileRe = new Regex(@"^\s*(?<file>[^#;].+)", RegexOptions.Compiled);
 
         private static readonly Regex _userSettingRe = new Regex(@"^SET\s+(?<key>\S+)\s+(?<value>.*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        
+
         public static AddonMetadata ParseManifestFile(string filepath)
         {
             using var st = new FileStream(filepath, FileMode.Open);
@@ -138,7 +138,7 @@ namespace EsoAdv.Metadata.Parser
                     if (metadata != null)
                     {
                         metadata.Path = Path.GetRelativePath(addOnsPath, txtfile);
-                        metadata.IsTopLevel = parentDir == string.Empty;                        
+                        metadata.IsTopLevel = parentDir == string.Empty;
                         addonCollection.Add(metadata);
                     }
                 }
