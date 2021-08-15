@@ -26,7 +26,7 @@ namespace EsoAdv.Metadata.Test
         {
             var metadatafile = Path.Combine(testdataFolder, @"AddOns\AUI\AUI.txt");
             Assert.IsTrue(File.Exists(metadatafile), "Metadata file does not exist");
-            var metadata = FileParser.ParseManifestFile(metadatafile);
+            var metadata = ManifestParser.ParseManifestFile(metadatafile);
             Assert.IsNotNull(metadata, "Must not be null");
             // Assert.IsNotNull(metadata.Path, "Path must not be null");
             Assert.IsNotNull(metadata.Title, "Title", "Must have title");
