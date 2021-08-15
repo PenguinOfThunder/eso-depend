@@ -6,22 +6,8 @@ namespace EsoAdv.Metadata.Model
     public class AddonMetadataCollection
     {
         public string BasePath { get; set; }
-        public string CurrentGameVersion
-        {
-            get
-            {
-                return AddOnSettings?.GetValueOrDefault("Version");
-            }
-        }
-        public string ClientLanguage
-        {
-            get
-            {
-                return UserSettings?.GetValueOrDefault("LastValidLanguage") ?? "en";
-            }
-        }
-        public Dictionary<string, string> UserSettings { get; set; }
-        public Dictionary<string, string> AddOnSettings { get; set; }
+        public UserSettings UserSettings { get; set; }
+        public AddOnSettings AddOnSettings { get; set; }
         private readonly List<AddonMetadata> _addons = new();
         public int Count => _addons.Count;
 
@@ -70,7 +56,7 @@ namespace EsoAdv.Metadata.Model
         public List<Issue> Analyze(AnalyzerSettings settings)
         {
             var issues = new List<Issue>();
-
+            // TODO check if addons are outdated according to current version from user settings
             foreach (var addon in _addons.OrderBy(a => a.Path))
             {
                 // Metadata problems
@@ -83,6 +69,18 @@ namespace EsoAdv.Metadata.Model
                             AddOnRef = addon.Name,
                             Severity = IssueSeverity.Info,
                             Message = $"{addon.Name} is missing the AddOnVersion manifest field"
+                        });
+                    }
+                }
+                if (settings.CheckOutdated && addon.APIVersion != null && AddOnSettings.Version != null)
+                {
+                    if (!addon.APIVersion.Any(v => int.Parse(v) >= AddOnSettings.Version))
+                    {
+                        issues.Add(new Issue
+                        {
+                            AddOnRef = addon.Name,
+                            Severity = IssueSeverity.Info,
+                            Message = $"{addon.Name} is outdated - supported version(s): {string.Join('-', addon.APIVersion)}"
                         });
                     }
                 }
@@ -150,7 +148,7 @@ namespace EsoAdv.Metadata.Model
                     foreach (var file in addon.ProvidedFiles)
                     {
                         var filePath = Path.Combine(BasePath, addon.Directory,
-                         AddonMetadata.ExpandendFileName(file, ClientLanguage, CurrentGameVersion));
+                         AddonMetadata.ExpandendFileName(file, UserSettings.LastValidLanguage, AddOnSettings.Version));
                         if (!File.Exists(filePath))
                         {
                             issues.Add(new Issue()
@@ -182,15 +180,6 @@ namespace EsoAdv.Metadata.Model
             }
             return issues;
         }
-    }
-
-    public class AnalyzerSettings
-    {
-        public bool CheckAddOnVersion = true;
-        public bool CheckProvidedFiles = true;
-        public bool CheckOptionalDependsOn = true;
-        public bool CheckMultipleInstances = true;
-        internal bool CheckDependsOn = true;
     }
 
 }

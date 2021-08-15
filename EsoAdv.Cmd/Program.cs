@@ -26,7 +26,7 @@ namespace EsoAdv.Cmd
                         Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                         @"Elder Scrolls Online\live"))
                     }.FirstOrDefault(di => di.Exists),
-                    @"The ESO environment directory, e.g., My Documents\Elder Scrolls Online\live")
+                    @"The ESO platform directory (where UserSettings.txt is), e.g., My Documents\Elder Scrolls Online\live")
                     .ExistingOnly(),
                 new Option<FileInfo>(
                     new[] { "--output", "-o" }
@@ -36,7 +36,12 @@ namespace EsoAdv.Cmd
                     new[] { "--launch", "-L" }
                     , "Launch report on completion (requires --output)"),
                 new Option<bool>(
-                    new[] { "--missing-optional", "-O" }
+                    new[] { "--outdated", "-O"},
+                    () => true,
+                    "Report outdated addons"
+                ),
+                new Option<bool>(
+                    new[] { "--missing-optional", "-D" }
                     , () => false
                     , "Report missing optional dependencies"),
                 new Option<bool>(
@@ -64,6 +69,7 @@ namespace EsoAdv.Cmd
                 , bool missingFiles
                 , bool missingVersion
                 , bool multipleInstances
+                , bool outdated
                 , bool dump
                 , CancellationToken cancellationToken) =>
             {
@@ -75,6 +81,7 @@ namespace EsoAdv.Cmd
                         var addonCollection = FileParser.ParseFolder(esoDir.FullName);
                         var issues = addonCollection.Analyze(new AnalyzerSettings()
                         {
+                            CheckOutdated = outdated,
                             CheckProvidedFiles = missingFiles,
                             CheckOptionalDependsOn = missingOptional,
                             CheckMultipleInstances = multipleInstances,
