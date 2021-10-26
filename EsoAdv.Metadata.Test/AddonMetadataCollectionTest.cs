@@ -16,7 +16,7 @@ namespace EsoAdv.Metadata.Test
         [TestMethod]
         public void TestAnalyze()
         {
-            var aoColl = FileParser.ParseFolder(testdataFolder);
+            var aoColl = AddOnCollectionParser.ParseFolder(testdataFolder);
             var issues = aoColl.Analyze(new AnalyzerSettings());
             Assert.IsNotNull(issues, "Collection must not be null");
             Assert.IsTrue(issues.Any(), "Collection must not be empty");

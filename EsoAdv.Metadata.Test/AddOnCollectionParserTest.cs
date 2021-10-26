@@ -38,7 +38,7 @@ namespace EsoAdv.Metadata.Test
         [TestMethod]
         public void TestParseFolder()
         {
-            var addons = FileParser.ParseFolder(testdataFolder);
+            var addons = AddOnCollectionParser.ParseFolder(testdataFolder);
             Assert.IsNotNull(addons);
             Assert.IsFalse(addons.Count == 0, "Must not be empty");
             var auiAddon = addons.GetAddonsByName("AUI").FirstOrDefault();
@@ -53,7 +53,7 @@ namespace EsoAdv.Metadata.Test
         [TestMethod]
         public void TestGenerateDot()
         {
-            var addons = FileParser.ParseFolder(testdataFolder);
+            var addons = AddOnCollectionParser.ParseFolder(testdataFolder);
             using var tw = File.CreateText("dependencies.dot");
             tw.WriteLine("digraph dependencies {");
             foreach (var addon in addons.Items)
@@ -88,7 +88,7 @@ namespace EsoAdv.Metadata.Test
         [TestMethod]
         public void TestGenerateReport()
         {
-            var addonCollection = FileParser.ParseFolder(testdataFolder);
+            var addonCollection = AddOnCollectionParser.ParseFolder(testdataFolder);
             var issues = addonCollection.Analyze(new AnalyzerSettings());
             var reportFile = "addons_report.txt";
             using var tw = new StreamWriter(reportFile);
