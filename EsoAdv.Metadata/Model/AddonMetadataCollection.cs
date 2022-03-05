@@ -46,6 +46,17 @@ namespace EsoAdv.Metadata.Model
             return null;
         }
 
+
+        /// <summary>Get list of addons that depend on another</summary>    
+        public IEnumerable<string> GetDependents(AddonMetadata origin)
+        {
+            return _addons.Where(ao =>
+                    ao.DependsOn
+                    .Concat(ao.OptionalDependsOn)
+                    .Any(dep => origin.SatisfiesVersion(dep))
+                ).Select(ao => ao.Name);
+        }
+
         public IEnumerable<AddonMetadata> FindMatchingAddons(string addOnRef)
         {
             return _addons.Where(ao => ao.SatisfiesVersion(addOnRef));

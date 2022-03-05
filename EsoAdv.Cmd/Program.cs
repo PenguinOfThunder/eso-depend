@@ -170,7 +170,16 @@ namespace EsoAdv.Cmd
                         tw.WriteLine($"- {dep}");
                     }
                 }
-
+                var dependents = addons.GetDependents(addon).ToList();
+                if (dependents.Any())
+                {
+                    tw.WriteLine("## Used by");
+                    foreach (var dep in dependents)
+                    {
+                        tw.WriteLine($"- {dep}");
+                    }
+                }
+                tw.WriteLine();
             }
         }
     }
