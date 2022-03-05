@@ -18,9 +18,8 @@ namespace EsoAdv.Cmd
         {
             // https://github.com/dotnet/command-line-api/blob/main/docs/Your-first-app-with-System-CommandLine.md
             // https://github.com/dotnet/command-line-api/blob/main/docs/model-binding.md
-            var rootCommand = new RootCommand {
-                new Option<DirectoryInfo>(
-                    new [] { "--eso-dir", "-d" },
+            var esoDirOption = new Option<DirectoryInfo>(
+                    new[] { "--eso-dir", "-d" },
                     () => new[] {
                         new DirectoryInfo(Path.Combine(
                             Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
@@ -31,110 +30,135 @@ namespace EsoAdv.Cmd
                         )
                     }.FirstOrDefault(di => di.Exists),
                     "The ESO platform directory (where UserSettings.txt is), e.g., \"My Documents\\Elder Scrolls Online\\live\". (The default probably only works on Windows.)")
-                    .ExistingOnly(),
-                new Option<FileInfo>(
-                    new[] { "--output", "-o" }
-                    , "File to write report to")
-                    .LegalFilePathsOnly(),
-                new Option<bool>(
-                    new[] { "--launch", "-L" }
-                    , "Launch report on completion (requires --output)"),
-                new Option<bool>(
-                    new[] { "--outdated", "-O"},
+                    .ExistingOnly();
+            var outputOpt = new Option<FileInfo>(
+                            new[] { "--output", "-o" }
+                            , "File to write report to")
+                            .LegalFilePathsOnly();
+            var launchOpt = new Option<bool>(
+                                new[] { "--launch", "-L" }
+                                , "Launch report on completion (requires --output)");
+            var outdatedOpt = new Option<bool>(
+                    new[] { "--outdated", "-O" },
                     () => true,
                     "Report outdated addons"
-                ),
-                new Option<bool>(
-                    new[] { "--missing-optional", "-D" }
-                    , () => false
-                    , "Report missing optional dependencies"),
-                new Option<bool>(
+                );
+            var missingOptionalOpt = new Option<bool>(
+                new[] { "--missing-optional", "-D" }
+                , () => false
+                , "Report missing optional dependencies");
+
+            var missingFilesOpt = new Option<bool>(
                     new[] { "--missing-files", "-F" }
                     , () => false
-                    , "Report files mentioned in manifest that don't exist"),
-                new Option<bool>(
+                    , "Report files mentioned in manifest that don't exist");
+
+            var missingVersionOpt = new Option<bool>(
                     new[] { "--missing-version", "-V" }
                     , () => false
-                    , "Report missing AddOnVersion manifest directive"),
-                new Option<bool>(
-                    new[] { "--multiple-instances", "-M" }
-                    , () => false
-                    , "Report multiple instances of addon-ons"),
-                new Option<bool>(
+                    , "Report missing AddOnVersion manifest directive");
+            var multipleInstancesOpt = new Option<bool>(
+                                new[] { "--multiple-instances", "-M" }
+                                , () => false
+                                , "Report multiple instances of addon-ons");
+            var dumpOpt = new Option<bool>(
                     "--dump", "Dump the information scanned from the discovered manifests"
-                )
+                );
+            // Build root command
+            var rootCommand = new RootCommand("Elder Scrolls Online Add-Ons dependency scanner") {
+                esoDirOption,
+                outputOpt,
+                launchOpt,
+                outdatedOpt,
+                missingOptionalOpt,
+                missingFilesOpt,
+                missingVersionOpt,
+                multipleInstancesOpt,
+                dumpOpt
             };
-            rootCommand.Description = "Elder Scrolls Online Add-Ons dependency scanner";
-            rootCommand.Handler = CommandHandler.Create(async (
-                DirectoryInfo esoDir
-                , FileInfo output
-                , bool launch
-                , bool missingOptional
-                , bool missingFiles
-                , bool missingVersion
-                , bool multipleInstances
-                , bool outdated
-                , bool dump
-                , CancellationToken cancellationToken) =>
+
+            var handler = new Action<DirectoryInfo, FileInfo, bool, bool, bool, bool, bool, bool, bool, InvocationContext, CancellationToken>(Run);
+            rootCommand.SetHandler(handler
+                , esoDirOption, outputOpt, launchOpt
+                , missingOptionalOpt, missingFilesOpt, missingVersionOpt
+                , multipleInstancesOpt, outdatedOpt, dumpOpt);
+
+            await rootCommand.InvokeAsync(args);
+        }
+
+        public static void Run(
+                         DirectoryInfo esoDir
+                        , FileInfo output
+                        , bool launch
+                        , bool missingOptional
+                        , bool missingFiles
+                        , bool missingVersion
+                        , bool multipleInstances
+                        , bool outdated
+                        , bool dump
+                        , InvocationContext context
+                        , CancellationToken cancellationToken)
+        {
+            try
             {
-                try
+                if (esoDir.Exists)
                 {
-                    if (esoDir.Exists)
+                    Console.WriteLine("Scanning ESO folder {0}...", esoDir.FullName);
+                    var addonCollection = AddOnCollectionParser.ParseFolder(esoDir.FullName);
+                    var issues = addonCollection.Analyze(new AnalyzerSettings()
                     {
-                        Console.WriteLine("Scanning ESO folder {0}...", esoDir.FullName);
-                        var addonCollection = AddOnCollectionParser.ParseFolder(esoDir.FullName);
-                        var issues = addonCollection.Analyze(new AnalyzerSettings()
-                        {
-                            CheckOutdated = outdated,
-                            CheckProvidedFiles = missingFiles,
-                            CheckOptionalDependsOn = missingOptional,
-                            CheckMultipleInstances = multipleInstances,
-                            CheckAddOnVersion = missingVersion
-                        });
-                        if (dump)
-                        {
-                            WriteDump(Console.Out, addonCollection);
-                        }
+                        CheckOutdated = outdated,
+                        CheckProvidedFiles = missingFiles,
+                        CheckOptionalDependsOn = missingOptional,
+                        CheckMultipleInstances = multipleInstances,
+                        CheckAddOnVersion = missingVersion
+                    });
+                    if (dump)
+                    {
+                        WriteDump(Console.Out, addonCollection);
+                    }
 
-                        if (issues.Count() > 0)
+                    if (issues.Count() > 0)
+                    {
+                        if (output == null)
                         {
-                            if (output == null)
-                            {
-                                WriteReport(Console.Out, issues);
-                            }
-                            else
-                            {
-                                using (var tw = new StreamWriter(output.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.None)))
-                                {
-                                    WriteReport(tw, issues);
-                                }
-                                Console.WriteLine("Wrote report to {0}", output);
-
-                                if (launch)
-                                {
-                                    System.Diagnostics.Process.Start("explorer.exe", $"\"{output.FullName}\"");
-                                }
-                            }
+                            WriteReport(Console.Out, issues);
                         }
                         else
                         {
-                            Console.WriteLine("No issues found");
+                            using (var tw = new StreamWriter(output.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.None)))
+                            {
+                                WriteReport(tw, issues);
+                            }
+                            Console.WriteLine("Wrote report to {0}", output);
+
+                            if (launch)
+                            {
+                                System.Diagnostics.Process.Start("explorer.exe", $"\"{output.FullName}\"");
+                            }
                         }
-                        return 0;
                     }
                     else
                     {
-                        Console.Error.WriteLine("Directory was not found: {0}", esoDir.FullName);
-                        return 2;
+                        Console.WriteLine("No issues found");
                     }
+                    context.ExitCode = 0;
+                    // return 0;
                 }
-                catch (OperationCanceledException)
+                else
                 {
-                    Console.Error.WriteLine("Interrupted");
-                    return 1;
+                    Console.Error.WriteLine("Directory was not found: {0}", esoDir.FullName);
+                    // return 2;
+                    context.ExitCode = 2;
                 }
-            });
-            await rootCommand.InvokeAsync(args);
+            }
+            catch (OperationCanceledException)
+            {
+                Console.Error.WriteLine("Interrupted");
+                // return 1;
+                context.ExitCode = 1;
+            }
+
         }
 
         public static void WriteReport(TextWriter tw, List<Issue> issues)
