@@ -6,9 +6,9 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using EsoAdv.Metadata.Analyzer;
 using EsoAdv.Metadata.Model;
 using EsoAdv.Metadata.Parser;
-using EsoAdv.Metadata.Analyzer;
 namespace EsoAdv.Cmd
 {
 
@@ -21,9 +21,15 @@ namespace EsoAdv.Cmd
             var esoDirOption = new Option<DirectoryInfo>(
                     new[] { "--eso-dir", "-d" },
                     () => new[] {
+                        // NA megaserver
                         new DirectoryInfo(Path.Combine(
                             Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                             @"Elder Scrolls Online\live")),
+                        // EU Megaserver
+                        new DirectoryInfo(Path.Combine(
+                            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                            @"Elder Scrolls Online\liveeu")),
+                        // PTS
                         new DirectoryInfo(Path.Combine(
                             Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                             @"Elder Scrolls Online\pts")
