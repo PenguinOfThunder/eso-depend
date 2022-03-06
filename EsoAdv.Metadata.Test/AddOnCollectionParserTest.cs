@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace EsoAdv.Metadata.Test
@@ -23,11 +24,11 @@ namespace EsoAdv.Metadata.Test
         }
 
         [TestMethod]
-        public void TestParse()
+        public async Task TestParse()
         {
             var metadatafile = Path.Combine(testdataFolder, @"AddOns\AUI\AUI.txt");
             Assert.IsTrue(File.Exists(metadatafile), "Metadata file does not exist");
-            var metadata = ManifestParser.ParseManifestFile(metadatafile);
+            var metadata = await ManifestParser.ParseManifestFileAsync(metadatafile);
             Assert.IsNotNull(metadata, "Must not be null");
             // Assert.IsNotNull(metadata.Path, "Path must not be null");
             Assert.IsNotNull(metadata.Title, "Title", "Must have title");
@@ -37,9 +38,9 @@ namespace EsoAdv.Metadata.Test
         }
 
         [TestMethod]
-        public void TestParseFolder()
+        public async Task TestParseFolder()
         {
-            var addons = AddOnCollectionParser.ParseFolder(testdataFolder);
+            var addons = await AddOnCollectionParser.ParseFolderAsync(testdataFolder);
             Assert.IsNotNull(addons);
             Assert.IsFalse(addons.Count == 0, "Must not be empty");
             var auiAddon = addons.GetAddonsByName("AUI").FirstOrDefault();
@@ -52,9 +53,9 @@ namespace EsoAdv.Metadata.Test
         }
 
         [TestMethod]
-        public void TestGenerateDot()
+        public async Task TestGenerateDot()
         {
-            var addons = AddOnCollectionParser.ParseFolder(testdataFolder);
+            var addons = await AddOnCollectionParser.ParseFolderAsync(testdataFolder);
             using var tw = File.CreateText("dependencies.dot");
             tw.WriteLine("digraph dependencies {");
             foreach (var addon in addons.Items)
@@ -87,9 +88,9 @@ namespace EsoAdv.Metadata.Test
         }
 
         [TestMethod]
-        public void TestGenerateReport()
+        public async Task TestGenerateReport()
         {
-            var addonCollection = AddOnCollectionParser.ParseFolder(testdataFolder);
+            var addonCollection = await AddOnCollectionParser.ParseFolderAsync(testdataFolder);
             var analyzer = new AddonMetadataAnalyzer(new AnalyzerSettings());
             var issues = analyzer.Analyze(addonCollection);
             var reportFile = "addons_report.txt";

@@ -14,7 +14,7 @@ namespace EsoAdv.Cmd
 
     public class Program
     {
-        static async Task Main(string[] args)
+        public async static Task<int> Main(string[] args)
         {
             // https://github.com/dotnet/command-line-api/blob/main/docs/Your-first-app-with-System-CommandLine.md
             // https://github.com/dotnet/command-line-api/blob/main/docs/model-binding.md
@@ -89,7 +89,7 @@ namespace EsoAdv.Cmd
                 , missingOptionalOpt, missingFilesOpt, missingVersionOpt
                 , multipleInstancesOpt, outdatedOpt, dumpOpt);
 
-            await rootCommand.InvokeAsync(args);
+            return await rootCommand.InvokeAsync(args);
         }
 
         public static void Run(
@@ -110,7 +110,8 @@ namespace EsoAdv.Cmd
                 if (esoDir.Exists)
                 {
                     Console.WriteLine("Scanning ESO folder {0}...", esoDir.FullName);
-                    var addonCollection = AddOnCollectionParser.ParseFolder(esoDir.FullName);
+                    // XXX call synchronously
+                    var addonCollection = AddOnCollectionParser.ParseFolderAsync(esoDir.FullName, cancellationToken).Result;
                     var analyzer = new AddonMetadataAnalyzer(new AnalyzerSettings()
                     {
                         CheckOutdated = outdated,

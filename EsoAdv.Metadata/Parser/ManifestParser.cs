@@ -1,5 +1,8 @@
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using EsoAdv.Metadata.Model;
 
 namespace EsoAdv.Metadata.Parser
@@ -12,15 +15,13 @@ namespace EsoAdv.Metadata.Parser
 
         private static readonly Regex _fileRe = new(@"^\s*(?<file>[^#;].+)", RegexOptions.Compiled);
 
-        public static AddonMetadata ParseManifestFile(string filepath)
+        public async static Task<AddonMetadata> ParseManifestFileAsync(string filepath, CancellationToken cancellationToken = default)
         {
-            using var st = new FileStream(filepath, FileMode.Open);
-            using var sr = new StreamReader(st);
             var metadata = new AddonMetadata();
-            string line;
-            while (null != (line = sr.ReadLine()))
+            foreach(var line in await File.ReadAllLinesAsync(filepath, cancellationToken))
             {
-                // Console.WriteLine("Parse: " + line);
+                cancellationToken.ThrowIfCancellationRequested();
+                // System.Console.WriteLine("Parse: " + line);
                 if (_directiveRe.IsMatch(line))
                 {
                     // Console.WriteLine("Match directive");
