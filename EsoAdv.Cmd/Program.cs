@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EsoAdv.Metadata.Model;
 using EsoAdv.Metadata.Parser;
-
+using EsoAdv.Metadata.Analyzer;
 namespace EsoAdv.Cmd
 {
 
@@ -105,7 +105,7 @@ namespace EsoAdv.Cmd
                 {
                     Console.WriteLine("Scanning ESO folder {0}...", esoDir.FullName);
                     var addonCollection = AddOnCollectionParser.ParseFolder(esoDir.FullName);
-                    var issues = addonCollection.Analyze(new AnalyzerSettings()
+                    var analyzer = new AddonMetadataAnalyzer(new AnalyzerSettings()
                     {
                         CheckOutdated = outdated,
                         CheckProvidedFiles = missingFiles,
@@ -113,6 +113,7 @@ namespace EsoAdv.Cmd
                         CheckMultipleInstances = multipleInstances,
                         CheckAddOnVersion = missingVersion
                     });
+                    var issues = analyzer.Analyze(addonCollection);
                     if (dump)
                     {
                         WriteDump(Console.Out, addonCollection);

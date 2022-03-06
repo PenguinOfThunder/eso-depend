@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace EsoAdv.Metadata.Test
 {
+    using EsoAdv.Metadata.Analyzer;
     using EsoAdv.Metadata.Model;
     using EsoAdv.Metadata.Parser;
 
@@ -30,8 +31,8 @@ namespace EsoAdv.Metadata.Test
             Assert.IsNotNull(metadata, "Must not be null");
             // Assert.IsNotNull(metadata.Path, "Path must not be null");
             Assert.IsNotNull(metadata.Title, "Title", "Must have title");
-            Assert.AreEqual(metadata.Author, "|c87ddf2Sensi|r");
-            Assert.AreEqual(metadata.Title, @"|c77ee02Advanced UI|r || Version: 3.81");
+            Assert.AreEqual("|c87ddf2Sensi|r", metadata.Author, "Author name mismatch");
+            Assert.AreEqual(@"|c77ee02Advanced UI|r || Version: 3.86", metadata.Title, "Title mismatch");
             CollectionAssert.Contains(metadata.ProvidedFiles, "Templates.xml");
         }
 
@@ -45,9 +46,9 @@ namespace EsoAdv.Metadata.Test
             Assert.IsNotNull(auiAddon, "Must find AUI");
             var auiFdAddon = addons.GetAddonsByName("AUI_FightData").FirstOrDefault();
             Assert.IsNotNull(auiFdAddon, "Must find AUI");
-            var auiFdparent = addons.GetParentAddon(auiFdAddon);
-            Assert.IsNotNull(auiFdparent, "Must have parent");
-            Assert.AreSame(auiFdparent, auiAddon, "AUI should be the parent of AUI_FightData");
+            var auiFdParent = addons.GetParentAddon(auiFdAddon);
+            Assert.IsNotNull(auiFdParent, "Must have parent");
+            Assert.AreSame(auiFdParent, auiAddon, "AUI should be the parent of AUI_FightData");
         }
 
         [TestMethod]
@@ -89,7 +90,8 @@ namespace EsoAdv.Metadata.Test
         public void TestGenerateReport()
         {
             var addonCollection = AddOnCollectionParser.ParseFolder(testdataFolder);
-            var issues = addonCollection.Analyze(new AnalyzerSettings());
+            var analyzer = new AddonMetadataAnalyzer(new AnalyzerSettings());
+            var issues = analyzer.Analyze(addonCollection);
             var reportFile = "addons_report.txt";
             using var tw = new StreamWriter(reportFile);
             tw.WriteLine("# Issues found");

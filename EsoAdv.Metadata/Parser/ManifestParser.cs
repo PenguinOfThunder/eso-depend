@@ -6,11 +6,11 @@ namespace EsoAdv.Metadata.Parser
 {
     public class ManifestParser
     {
-        private static readonly Regex _directiveRe = new Regex(@"^##\s+(?<directive>[a-zA-Z0-9_]+):\s*(?<value>.*)", RegexOptions.Compiled);
+        private static readonly Regex _directiveRe = new(@"^##\s+(?<directive>[a-zA-Z0-9_]+):\s*(?<value>.*)", RegexOptions.Compiled);
 
-        private static readonly Regex _commentRe = new Regex(@"^(\s*)$|^\s*[#;]", RegexOptions.Compiled);
+        private static readonly Regex _commentRe = new(@"^(\s*)$|^\s*[#;]", RegexOptions.Compiled);
 
-        private static readonly Regex _fileRe = new Regex(@"^\s*(?<file>[^#;].+)", RegexOptions.Compiled);
+        private static readonly Regex _fileRe = new(@"^\s*(?<file>[^#;].+)", RegexOptions.Compiled);
 
         public static AddonMetadata ParseManifestFile(string filepath)
         {

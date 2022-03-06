@@ -7,7 +7,7 @@ namespace EsoAdv.Metadata.Parser
 {
     public class UserSettingsParser
     {
-        private static readonly Regex _userSettingRe = new Regex(@"^SET\s+(?<key>\S+)\s+(?<value>.*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex _userSettingRe = new(@"^SET\s+(?<key>\S+)\s+(?<value>.*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         
         public static UserSettings ParseUserSettings(string filename)
         {

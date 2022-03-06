@@ -6,7 +6,7 @@ namespace EsoAdv.Metadata.Model
 {
     public class AddonMetadata
     {
-        private static readonly Regex VersionSpecRe = new Regex(@"^(?<name>[\-a-zA-Z0-9_.]+)(?:(?<op>>=)(?<version>\d+))?", RegexOptions.Compiled);
+        private static readonly Regex VersionSpecRe = new(@"^(?<name>[\-a-zA-Z0-9_.]+)(?:(?<op>>=)(?<version>\d+))?", RegexOptions.Compiled);
         public Dictionary<string, string> Metadata { get; } = new Dictionary<string, string>();
         public AddonMetadata() { }
 
