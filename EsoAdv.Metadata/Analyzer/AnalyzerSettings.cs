@@ -1,4 +1,4 @@
-namespace EsoAdv.Metadata.Model
+namespace EsoAdv.Metadata.Analyzer
 {
     public class AnalyzerSettings
     {
