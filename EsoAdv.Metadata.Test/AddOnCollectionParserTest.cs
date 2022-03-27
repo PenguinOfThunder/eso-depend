@@ -13,21 +13,13 @@ namespace EsoAdv.Metadata.Test
     [TestClass]
     public class FileParserTest
     {
-        private string testdataFolder;
-
-        [TestInitialize]
-        public void Setup()
-        {
-            testdataFolder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                @"Elder Scrolls Online\live");
-        }
+        private string testdataFolder = "testdata";
 
         [TestMethod]
         public async Task TestParse()
         {
             var metadatafile = Path.Combine(testdataFolder, @"AddOns\AUI\AUI.txt");
-            Assert.IsTrue(File.Exists(metadatafile), "Metadata file does not exist");
+            Assert.IsTrue(File.Exists(metadatafile), "Metadata file `{0}` does not exist", metadatafile);
             var metadata = await ManifestParser.ParseManifestFileAsync(metadatafile);
             Assert.IsNotNull(metadata, "Must not be null");
             // Assert.IsNotNull(metadata.Path, "Path must not be null");
@@ -46,7 +38,7 @@ namespace EsoAdv.Metadata.Test
             var auiAddon = addons.GetAddonsByName("AUI").FirstOrDefault();
             Assert.IsNotNull(auiAddon, "Must find AUI");
             var auiFdAddon = addons.GetAddonsByName("AUI_FightData").FirstOrDefault();
-            Assert.IsNotNull(auiFdAddon, "Must find AUI");
+            Assert.IsNotNull(auiFdAddon, "Must find AUI_FightData");
             var auiFdParent = addons.GetParentAddon(auiFdAddon);
             Assert.IsNotNull(auiFdParent, "Must have parent");
             Assert.AreSame(auiFdParent, auiAddon, "AUI should be the parent of AUI_FightData");

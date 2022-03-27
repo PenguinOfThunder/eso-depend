@@ -13,9 +13,7 @@ namespace EsoAdv.Metadata.Test
     [TestClass]
     public class AddonMetadataCollectionTest
     {
-        private string testdataFolder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                @"Elder Scrolls Online\live");
+        private string testdataFolder = "./testdata";
 
         [TestMethod]
         public async Task TestAnalyze()

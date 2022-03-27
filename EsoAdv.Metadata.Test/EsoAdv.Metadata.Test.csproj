@@ -17,4 +17,11 @@
     <ProjectReference Include="..\EsoAdv.Metadata\EsoAdv.Metadata.csproj" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <Content Include="testdata\**\*.*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
