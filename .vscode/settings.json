@@ -1,12 +1,6 @@
 {
   "cSpell.language": "en",
-  "cSpell.words": [
-    "atoi",
-    "Elsweyr",
-    "ESOUI",
-    "liveeu",
-    "Zenimax"
-  ],
+  "cSpell.words": ["atoi", "Elsweyr", "ESOUI", "liveeu", "Zenimax"],
   "cSpell.ignorePaths": [
     "package-lock.json",
     "node_modules",
@@ -15,9 +9,5 @@
     ".vscode",
     ".vscode-insiders",
     "EsoAdv.*.Test"
-  ],
-  "omnisharp.organizeImportsOnFormat": true,
-  "omnisharp.useEditorFormattingSettings": false,
-  "omnisharp.enableRoslynAnalyzers": true,
-  "omnisharp.useModernNet": true
+  ]
 }
