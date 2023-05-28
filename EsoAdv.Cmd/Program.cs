@@ -67,6 +67,10 @@ namespace EsoAdv.Cmd
                                 new[] { "--multiple-instances", "-M" }
                                 , () => false
                                 , "Report multiple instances of addon-ons");
+            var unusedAddons = new Option<bool>(
+                                new[] { "--unused", "-U" }
+                                , () => true
+                                , "Report unused add-ons");
             var dumpOpt = new Option<bool>(
                     "--dump", "Dump the information scanned from the discovered manifests"
                 );
@@ -80,14 +84,15 @@ namespace EsoAdv.Cmd
                 missingFilesOpt,
                 missingVersionOpt,
                 multipleInstancesOpt,
+                unusedAddons,
                 dumpOpt
             };
 
-            var handler = new Action<DirectoryInfo, FileInfo, bool, bool, bool, bool, bool, bool, bool, InvocationContext, CancellationToken>(Run);
+            var handler = new Action<DirectoryInfo, FileInfo, bool, bool, bool, bool, bool, bool, bool, bool, InvocationContext, CancellationToken>(Run);
             rootCommand.SetHandler(handler
                 , esoDirOption, outputOpt, launchOpt
                 , missingOptionalOpt, missingFilesOpt, missingVersionOpt
-                , multipleInstancesOpt, outdatedOpt, dumpOpt);
+                , multipleInstancesOpt, outdatedOpt, unusedAddons, dumpOpt);
 
             return await rootCommand.InvokeAsync(args);
         }
@@ -101,6 +106,7 @@ namespace EsoAdv.Cmd
                         , bool missingVersion
                         , bool multipleInstances
                         , bool outdated
+                        , bool unused
                         , bool dump
                         , InvocationContext context
                         , CancellationToken cancellationToken)
@@ -118,7 +124,8 @@ namespace EsoAdv.Cmd
                         CheckProvidedFiles = missingFiles,
                         CheckOptionalDependsOn = missingOptional,
                         CheckMultipleInstances = multipleInstances,
-                        CheckAddOnVersion = missingVersion
+                        CheckAddOnVersion = missingVersion,
+                        CheckUnused = unused
                     });
                     var issues = analyzer.Analyze(addonCollection);
                     if (dump)

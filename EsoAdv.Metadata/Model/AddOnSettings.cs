@@ -12,6 +12,8 @@ namespace EsoAdv.Metadata.Model
 
         private readonly Dictionary<string, string> _settings = new();
 
+        private readonly IDictionary<string, HashSet<string>> _realmCharacterMap = new Dictionary<string, HashSet<string>>();
+
         public string this[string key]
         {
             get { return _settings.GetValueOrDefault(key); }
@@ -39,7 +41,40 @@ namespace EsoAdv.Metadata.Model
         public int? this[string realm, string character, string addon]
         {
             get { return _realmCharSettings[GetPerCharacterAddonKey(realm, character, addon)]; }
-            set { _realmCharSettings[GetPerCharacterAddonKey(realm, character, addon)] = value; }
+            set
+            {
+                _realmCharacterMap.TryAdd(realm, new HashSet<string>());
+                _realmCharacterMap[realm].Add(character);
+                _realmCharSettings[GetPerCharacterAddonKey(realm, character, addon)] = value;
+            }
+        }
+
+        public IEnumerable<string> GetRealms() => _realmCharacterMap.Keys;
+
+        public IEnumerable<string> GetRealmCharacters(string realm) => _realmCharacterMap[realm];
+
+        public bool IsAddonEnabledAnywhere(string addon)
+        {
+            bool seen = false;
+            // These include the empty realm and character key
+            foreach (var realm in GetRealms())
+            {
+                foreach (var character in GetRealmCharacters(realm))
+                {
+                    if (_realmCharSettings.TryGetValue(GetPerCharacterAddonKey(realm, character, addon), out var value))
+                    {
+                        seen = true;
+                        if (value == 1)
+                        {
+                            // definitively used (true)
+                            return true;
+                        }
+                    }
+                }
+            }
+            // If we did not see it mentioned, consider it enabled (true).
+            // If we did see it and still ended up here, it was disabled everywhere (false)
+            return !seen;
         }
 
         #endregion

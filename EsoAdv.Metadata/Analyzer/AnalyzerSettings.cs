@@ -7,6 +7,7 @@ namespace EsoAdv.Metadata.Analyzer
         public bool CheckProvidedFiles = true;
         public bool CheckOptionalDependsOn = true;
         public bool CheckMultipleInstances = true;
-        internal bool CheckDependsOn = true;
+        public bool CheckDependsOn = true;
+        public bool CheckUnused { get; set; } = true;
     }
 }

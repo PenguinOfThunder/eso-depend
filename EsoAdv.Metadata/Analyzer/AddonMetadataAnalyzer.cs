@@ -28,6 +28,7 @@ namespace EsoAdv.Metadata.Analyzer
                 issues.AddRange(ValidateAddOnDependencies(addonCollection, addon));
                 issues.AddRange(ValidateAddOnOptionalDependencies(addonCollection, addon));
                 issues.AddRange(ValidateAddOnFiles(addonCollection, addon));
+                issues.AddRange(ValidateAddonDisabledEverywhere(addOnSettings, addon));
             }
             issues.AddRange(ValidateMultipleInstances(addonCollection));
             return issues;
@@ -178,6 +179,22 @@ namespace EsoAdv.Metadata.Analyzer
                         AddOnRef = addon.Name,
                         Severity = IssueSeverity.Info,
                         Message = $"{addon.Name} is missing the AddOnVersion manifest field"
+                    };
+                }
+            }
+        }
+
+        private IEnumerable<Issue> ValidateAddonDisabledEverywhere(AddOnSettings addOnSettings, AddonMetadata addon)
+        {
+            if (_settings.CheckUnused)
+            {
+                if (addon.IsTopLevel && !addOnSettings.IsAddonEnabledAnywhere(addon.Name))
+                {
+                    yield return new Issue()
+                    {
+                        AddOnRef = addon.Name,
+                        Message = "Disabled by all characters",
+                        Severity = IssueSeverity.Warning
                     };
                 }
             }

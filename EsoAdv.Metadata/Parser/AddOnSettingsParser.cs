@@ -34,7 +34,7 @@ namespace EsoAdv.Metadata.Parser
                         var kv = content.Split(" ", 2,
                             StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                         var k = kv[0];
-                        var v = kv[1];
+                        var v = kv.Length > 1 ? kv[1] : null;
                         settings[k] = v;
                     }
                 }
