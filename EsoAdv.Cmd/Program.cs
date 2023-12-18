@@ -141,7 +141,7 @@ namespace EsoAdv.Cmd
                         }
                         else
                         {
-                            using (var tw = new StreamWriter(output.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.None)))
+                            using (var tw = new StreamWriter(output.Open(FileMode.OpenOrCreate | FileMode.Truncate, FileAccess.Write, FileShare.None)))
                             {
                                 WriteReport(tw, issues);
                             }
