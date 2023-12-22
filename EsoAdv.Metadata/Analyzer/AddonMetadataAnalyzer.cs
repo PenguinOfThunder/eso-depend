@@ -52,7 +52,7 @@ namespace EsoAdv.Metadata.Analyzer
                 foreach (string file in addon.ProvidedFiles)
                 {
                     string filePath = Path.Combine(addonCollection.BasePath, addon.Directory,
-                     AddonMetadata.ExpandendFileName(file, addonCollection.UserSettings.LastValidLanguage, addOnSettings.Version));
+                     AddonMetadata.ExpandFileName(file, addonCollection.UserSettings.LastValidLanguage, addOnSettings.Version));
                     if (!File.Exists(filePath))
                     {
                         yield return new Issue()

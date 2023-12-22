@@ -52,7 +52,7 @@ namespace EsoAdv.Metadata.Model
         /// <param name="apiVersion">string value to replace APIVersion with</param>
         /// <param name="language">string value to replace language with</param>
         /// <returns>The filename with placeholders expanded</returns>
-        public static string ExpandendFileName(string filename, string language, int? apiVersion)
+        public static string ExpandFileName(string filename, string language, int? apiVersion)
         {
             filename = filename?.Replace("$(APIVersion)", apiVersion?.ToString());
             filename = filename?.Replace("$(language)", language);
