@@ -88,12 +88,24 @@ namespace EsoAdv.Cmd
                 dumpOpt
             };
 
-            var handler = new Action<DirectoryInfo, FileInfo, bool, bool, bool, bool, bool, bool, bool, bool, InvocationContext, CancellationToken>(Run);
-            rootCommand.SetHandler(handler
-                , esoDirOption, outputOpt, launchOpt
-                , missingOptionalOpt, missingFilesOpt, missingVersionOpt
-                , multipleInstancesOpt, outdatedOpt, unusedAddons, dumpOpt);
-
+            rootCommand.SetHandler(ctx =>
+            {
+                var r = ctx.ParseResult;
+                Run(
+                    r.GetValueForOption(esoDirOption),
+                    r.GetValueForOption(outputOpt),
+                    r.GetValueForOption(launchOpt),
+                    r.GetValueForOption(missingOptionalOpt),
+                    r.GetValueForOption(missingFilesOpt),
+                    r.GetValueForOption(missingVersionOpt),
+                    r.GetValueForOption(multipleInstancesOpt),
+                    r.GetValueForOption(outdatedOpt),
+                    r.GetValueForOption(unusedAddons),
+                    r.GetValueForOption(dumpOpt),
+                    ctx,
+                    ctx.GetCancellationToken()
+                );
+            });
             return await rootCommand.InvokeAsync(args);
         }
 
@@ -141,7 +153,7 @@ namespace EsoAdv.Cmd
                         }
                         else
                         {
-                            using (var tw = new StreamWriter(output.Open(FileMode.OpenOrCreate | FileMode.Truncate, FileAccess.Write, FileShare.None)))
+                            using (var tw = new StreamWriter(output.Open(FileMode.Create, FileAccess.Write, FileShare.None)))
                             {
                                 WriteReport(tw, issues);
                             }
