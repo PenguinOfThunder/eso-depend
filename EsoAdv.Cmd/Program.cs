@@ -41,9 +41,14 @@ namespace EsoAdv.Cmd
                             new[] { "--output", "-o" }
                             , "File to write report to")
                             .LegalFilePathsOnly();
+            var formatOpt = new Option<string>(
+                                aliases: new[] { "--format", "-f" },
+                                getDefaultValue: () => "text",
+                                description: "Output format")
+                                .FromAmong("text", "markdown");
             var launchOpt = new Option<bool>(
-                                new[] { "--launch", "-L" }
-                                , "Launch report on completion (requires --output)");
+                                new[] { "--launch", "-L" },
+                                 "Launch report on completion (requires --output)");
             var outdatedOpt = new Option<bool>(
                     new[] { "--outdated", "-O" },
                     () => true,
@@ -78,6 +83,7 @@ namespace EsoAdv.Cmd
             var rootCommand = new RootCommand("Elder Scrolls Online Add-Ons dependency scanner") {
                 esoDirOption,
                 outputOpt,
+                formatOpt,
                 launchOpt,
                 outdatedOpt,
                 missingOptionalOpt,
@@ -94,6 +100,7 @@ namespace EsoAdv.Cmd
                 Run(
                     r.GetValueForOption(esoDirOption),
                     r.GetValueForOption(outputOpt),
+                    r.GetValueForOption(formatOpt),
                     r.GetValueForOption(launchOpt),
                     r.GetValueForOption(missingOptionalOpt),
                     r.GetValueForOption(missingFilesOpt),
@@ -112,6 +119,7 @@ namespace EsoAdv.Cmd
         public static void Run(
                          DirectoryInfo esoDir
                         , FileInfo output
+                        , string format
                         , bool launch
                         , bool missingOptional
                         , bool missingFiles
@@ -149,13 +157,13 @@ namespace EsoAdv.Cmd
                     {
                         if (output == null)
                         {
-                            WriteReport(Console.Out, issues);
+                            WriteReport(Console.Out, issues, format);
                         }
                         else
                         {
                             using (var tw = new StreamWriter(output.Open(FileMode.Create, FileAccess.Write, FileShare.None)))
                             {
-                                WriteReport(tw, issues);
+                                WriteReport(tw, issues, format);
                             }
                             Console.WriteLine("Wrote report to {0}", output);
 
@@ -188,13 +196,23 @@ namespace EsoAdv.Cmd
 
         }
 
-        public static void WriteReport(TextWriter tw, List<Issue> issues)
+        public static void WriteReport(TextWriter tw, List<Issue> issues, string format = "text")
         {
+            tw.WriteLine(format switch
+            {
+                "markdown" => "# ESO Add-Ons Report\n",
+                _ => "ESO Add-Ons Report:"
+            });
             foreach (Issue issue in issues)
             {
-                tw.WriteLine("{0} - {1}: {2}", issue.AddOnRef, issue.Severity, issue.Message);
+                tw.WriteLine(
+                format switch
+                {
+                    "markdown" => string.Format("* **{0}** - *{1}:* {2}", issue.AddOnRef, issue.Severity, issue.Message),
+                    _ => string.Format("{0} - {1}: {2}", issue.AddOnRef, issue.Severity, issue.Message)
+                });
             }
-            tw.WriteLine("{0} issues were found", issues.Count);
+            tw.WriteLine("\n{0} issues were found", issues.Count);
         }
 
         public static void WriteDump(TextWriter tw, AddonMetadataCollection addons)
