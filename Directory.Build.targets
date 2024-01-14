@@ -5,6 +5,6 @@
         <Company>AlphaPenguin Networks</Company>
         <Copyright>Copyright (c) 2024 PenguinOfThunder@github</Copyright>
         <Version>1.0.0.0</Version>
-        <IconUrl>appicon.ico</IconUrl>
+        <ApplicationIcon>..\appicon.ico</ApplicationIcon>
     </PropertyGroup>
 </Project>
