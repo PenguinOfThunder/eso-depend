@@ -67,14 +67,14 @@ public class AddOnSettings
         var seen = false;
         // These include the empty realm and character key
         foreach (var realm in GetRealms())
-        foreach (var character in GetRealmCharacters(realm))
-            if (_realmCharSettings.TryGetValue(GetPerCharacterAddonKey(realm, character, addon), out var value))
-            {
-                seen = true;
-                if (value == 1)
-                    // definitively used (true)
-                    return true;
-            }
+            foreach (var character in GetRealmCharacters(realm))
+                if (_realmCharSettings.TryGetValue(GetPerCharacterAddonKey(realm, character, addon), out var value))
+                {
+                    seen = true;
+                    if (value == 1)
+                        // definitively used (true)
+                        return true;
+                }
 
         // If we did not see it mentioned, consider it enabled (true).
         // If we did see it and still ended up here, it was disabled everywhere (false)
