@@ -24,4 +24,4 @@ jobs:
     - name: Run tests
       run: dotnet test -c Release --no-build --verbosity normal
     - name: Publish
-      run: dotnet publish EsoAdv.Cmd/EsoAdv.Cmd.csproj --no-build -c Release--self-contained true 
+      run: dotnet publish EsoAdv.Cmd/EsoAdv.Cmd.csproj --no-build -c Release --self-contained true
