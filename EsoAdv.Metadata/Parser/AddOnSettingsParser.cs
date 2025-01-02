@@ -2,54 +2,48 @@ using System;
 using System.IO;
 using EsoAdv.Metadata.Model;
 
-namespace EsoAdv.Metadata.Parser
+namespace EsoAdv.Metadata.Parser;
+
+public class AddOnSettingsParser
 {
-    public class AddOnSettingsParser
+    public static AddOnSettings ParseAddOnSettings(string filename)
     {
-        public static AddOnSettings ParseAddOnSettings(string filename)
-        {
-            var settings = new AddOnSettings();
-            using var st = new FileStream(filename, FileMode.Open);
-            using var sr = new StreamReader(st);
-            string line;
-            string realm = string.Empty;
-            string character = string.Empty;
-            while (null != (line = sr.ReadLine()))
+        var settings = new AddOnSettings();
+        using var st = new FileStream(filename, FileMode.Open);
+        using var sr = new StreamReader(st);
+        string line;
+        var realm = string.Empty;
+        var character = string.Empty;
+        while (null != (line = sr.ReadLine()))
+            if (string.IsNullOrWhiteSpace(line))
             {
-                if (string.IsNullOrWhiteSpace(line))
+            }
+            else if (line.StartsWith("#"))
+            {
+                var content = line[1..];
+                if (content.Contains("Megaserver"))
                 {
-                    continue;
-                }
-                else if (line.StartsWith("#"))
-                {
-                    var content = line[1..];
-                    if (content.Contains("Megaserver"))
-                    {
-                        var rc = content.Split('-', 2);
-                        realm = rc[0];
-                        character = rc[1];
-                    }
-                    else
-                    {
-                        var kv = content.Split(" ", 2,
-                            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                        var k = kv[0];
-                        var v = kv.Length > 1 ? kv[1] : null;
-                        settings[k] = v;
-                    }
+                    var rc = content.Split('-', 2);
+                    realm = rc[0];
+                    character = rc[1];
                 }
                 else
                 {
-                    var kv = line.Split(" ", 2,
+                    var kv = content.Split(" ", 2,
                         StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                    var v = kv[1];
-                    if (int.TryParse(kv[1], out int enabled))
-                    {
-                        settings[realm, character, kv[0]] = enabled;
-                    }
+                    var k = kv[0];
+                    var v = kv.Length > 1 ? kv[1] : null;
+                    settings[k] = v;
                 }
             }
-            return settings;
-        }
+            else
+            {
+                var kv = line.Split(" ", 2,
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                var v = kv[1];
+                if (int.TryParse(kv[1], out var enabled)) settings[realm, character, kv[0]] = enabled;
+            }
+
+        return settings;
     }
 }

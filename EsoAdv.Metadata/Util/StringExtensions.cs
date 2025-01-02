@@ -1,11 +1,14 @@
-namespace EsoAdv.Metadata.Util
+using System.Globalization;
+
+namespace EsoAdv.Metadata.Util;
+
+public static class StringExtensions
 {
-    using System.Globalization;
-    public static class StringExtensions
+    /// <summary>Try to parse a string as an integer and return default value if invalid</summary>
+    public static int? SafeParseInt(this string value, int? defaultValue = null)
     {
-        /// <summary>Try to parse a string as an integer and return default value if invalid</summary>
-        public static int? SafeParseInt(this string value, int? defaultValue = null) =>
-         value != null && int.TryParse(value, NumberStyles.Integer, NumberFormatInfo.InvariantInfo, out int intval)
+        return value != null &&
+               int.TryParse(value, NumberStyles.Integer, NumberFormatInfo.InvariantInfo, out var intval)
             ? intval
             : defaultValue;
     }
