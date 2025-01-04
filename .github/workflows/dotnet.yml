@@ -23,8 +23,12 @@ jobs:
       run: dotnet build -c Release --no-restore
     - name: Run tests
       run: dotnet test -c Release --no-build --verbosity normal
-    - name: Publish
-      run: dotnet publish EsoAdv.Cmd/EsoAdv.Cmd.csproj --no-build -c Release --self-contained true
+    - name: Publish win-x64
+      run: dotnet publish EsoAdv.Cmd/EsoAdv.Cmd.csproj -c Release --self-contained true -o publish/win-x64 -r win-x64
+    - name: Publish linux-x64
+      run: dotnet publish EsoAdv.Cmd/EsoAdv.Cmd.csproj -c Release --self-contained true -o publish/linux-x64 -r linux-x64
+    - name: Publish osx-arm64
+      run: dotnet publish EsoAdv.Cmd/EsoAdv.Cmd.csproj -c Release --self-contained true -o publish/osx-arm64 -r osx-arm64
     - name: GitHub Release
       # You may pin to the exact commit or the version.
       # uses: fnkr/github-action-ghr@96b1448dc6162f370067e1de51e856e733a76b4f
