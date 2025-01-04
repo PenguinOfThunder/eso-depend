@@ -25,3 +25,18 @@ jobs:
       run: dotnet test -c Release --no-build --verbosity normal
     - name: Publish
       run: dotnet publish EsoAdv.Cmd/EsoAdv.Cmd.csproj --no-build -c Release --self-contained true
+    - name: GitHub Release
+      # You may pin to the exact commit or the version.
+      # uses: fnkr/github-action-ghr@96b1448dc6162f370067e1de51e856e733a76b4f
+      # GHR_PATH — Required. Path to the artifacts you want to upload. You can specify a file or a directory. If you provide a directory, all files in that directory will be uploaded.
+      # GHR_COMPRESS — Optional. Compress files before uploading them. Can be either gz, bz2, xz, or zip. The correct file extension will be appended (e.g. .tar.gz, or .zip).
+      # GHR_DELETE — Optional. Delete release and its git tag in advance if it exists. Can be either true or false
+      # GHR_REPLACE — Optional. Replace artifacts if it is already uploaded. Can be either true or false
+      # GHR_PARALLELISM — Optional. Set amount of parallelism
+      uses: fnkr/github-action-ghr@v1.3
+      if: startsWith(github.ref, 'refs/tags/')
+      env:
+        GHR_COMPRESS: xz
+        GHR_PATH: publish/
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
